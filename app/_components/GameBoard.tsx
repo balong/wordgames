@@ -60,13 +60,32 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     setUsedChallenges(new Set());
     setUsedWords(new Set());
     setRecentTypes([]);
-    setUpcomingChallenges([]);
     setLevel(0);
     setGameActive(true);
     setMessage('');
     setSlots([]);
     setCurrentChallenge(null);
     setIsLoading(true);
+    
+    // Generate initial upcoming challenges
+    const initialUpcoming: Challenge[] = [];
+    for (let i = 1; i <= 2; i++) {
+      try {
+        const challenge = createSimpleChallenge(newLetterSet, null, i, new Set(), new Set(), []);
+        initialUpcoming.push(challenge);
+      } catch (error) {
+        console.error(`Error generating initial upcoming challenge ${i}:`, error);
+        initialUpcoming.push({
+          type: 'start',
+          letter: newLetterSet[0],
+          solution: 'fallback',
+          theme: ['#f6edf5', '#3e3e3e'],
+          requiredLength: 3
+        });
+      }
+    }
+    setUpcomingChallenges(initialUpcoming);
+    
     nextPuzzle(newLetterSet, new Set(), 0, null);
   }, [initialLetterSet]);
 
@@ -78,8 +97,18 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   ) => {
     console.log(`Generating next puzzle for level ${currentLevel}...`);
     try {
-      // Use simple challenge for now to test the UI
-      const challenge = createSimpleChallenge(letters, lastChallengeType, currentLevel, usedChallenges, usedWords, recentTypes);
+      let challenge: Challenge;
+      
+      // If we have upcoming challenges, use the first one
+      if (upcomingChallenges.length > 0) {
+        challenge = upcomingChallenges[0];
+        // Remove the used challenge from the list
+        setUpcomingChallenges(prev => prev.slice(1));
+      } else {
+        // Generate a new challenge
+        challenge = createSimpleChallenge(letters, lastChallengeType, currentLevel, usedChallenges, usedWords, recentTypes);
+      }
+      
       console.log('Challenge generated:', challenge);
       
       // Create unique challenge identifier with specific letter/count
@@ -114,7 +143,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setIsSuccess(false); // Clear success state
       setIsLoading(false);
       
-      // Generate upcoming challenges with updated state
+      // Generate new upcoming challenges to replace the one we just used
       const updatedUsedChallenges = new Set([...usedChallenges, challengeId]);
       const updatedRecentTypes = [...recentTypes, challenge.type].slice(-3);
       generateUpcomingChallenges(letters, currentLevel, challenge.type, updatedUsedChallenges, updatedRecentTypes);
@@ -133,39 +162,36 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     updatedUsedChallenges?: Set<string>,
     updatedRecentTypes?: ChallengeType[]
   ) => {
-    const upcoming: Challenge[] = [];
-    
     // Use updated state if provided, otherwise use current state
     const usedChallengesForGeneration = updatedUsedChallenges || usedChallenges;
     const recentTypesForGeneration = updatedRecentTypes || recentTypes;
     
-    // Generate challenges for the next 2 levels (currentLevel + 1 and currentLevel + 2)
-    for (let i = 1; i <= 2; i++) {
-      try {
-        const nextLevel = currentLevel + i;
-        const challenge = createSimpleChallenge(
-          letters, 
-          lastType, 
-          nextLevel, 
-          usedChallengesForGeneration, 
-          usedWords, 
-          recentTypesForGeneration
-        );
-        upcoming.push(challenge);
-      } catch (error) {
-        console.error(`Error generating upcoming challenge ${i}:`, error);
-        // Add a fallback challenge if generation fails
-        upcoming.push({
-          type: 'start',
-          letter: letters[0],
-          solution: 'fallback',
-          theme: ['#f6edf5', '#3e3e3e'],
-          requiredLength: 3
-        });
-      }
+    // Generate one new challenge to replace the one that was used
+    try {
+      const nextLevel = currentLevel + 1;
+      const challenge = createSimpleChallenge(
+        letters, 
+        lastType, 
+        nextLevel, 
+        usedChallengesForGeneration, 
+        usedWords, 
+        recentTypesForGeneration
+      );
+      
+      // Add the new challenge to the existing upcoming challenges
+      setUpcomingChallenges(prev => [...prev, challenge]);
+    } catch (error) {
+      console.error('Error generating upcoming challenge:', error);
+      // Add a fallback challenge if generation fails
+      const fallbackChallenge = {
+        type: 'start' as ChallengeType,
+        letter: letters[0],
+        solution: 'fallback',
+        theme: ['#f6edf5', '#3e3e3e'] as [string, string],
+        requiredLength: 3
+      };
+      setUpcomingChallenges(prev => [...prev, fallbackChallenge]);
     }
-    
-    setUpcomingChallenges(upcoming);
   };
 
   const applyTheme = (theme: [string, string]) => {
