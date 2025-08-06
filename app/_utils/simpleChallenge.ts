@@ -35,38 +35,49 @@ function getVowelCount(level: number): number {
   }
 }
 
+export function getAvailableChallengeTypes(level: number): ChallengeType[] {
+  let available: ChallengeType[] = ['start', 'end', 'vowels'];
+  if (level >= 2) {
+    available = ['start', 'end', 'vowels', 'contains'];
+  }
+  if (level >= 3) {
+    available = ['start', 'end', 'vowels', 'contains', 'middle'];
+  }
+  if (level >= 4) {
+    available = ['start', 'end', 'vowels', 'contains', 'middle', 'uses'];
+  }
+  if (level >= 5) {
+    available = ['start', 'end', 'vowels', 'contains', 'middle', 'uses', 'unique'];
+  }
+  return available;
+}
+
 export function createSimpleChallenge(
   letterSet: string[],
   lastType: ChallengeType | null,
   level: number,
   usedChallenges?: Set<string>,
   usedWords?: Set<string>,
-  recentTypes?: ChallengeType[]
+  recentTypes: ChallengeType[] = []
 ): Challenge {
   let type: ChallengeType;
-  
-  // Get available challenge types based on level - introduce new types earlier for better balance
-  let availableTypes: string[] = ['start', 'end', 'vowels'];
-  
-  if (level >= 2) {
-    availableTypes = ['start', 'end', 'vowels', 'contains'];
-  }
-  if (level >= 3) {
-    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle'];
-  }
-  if (level >= 4) {
-    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle', 'uses'];
-  }
-  if (level >= 5) {
-    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle', 'uses', 'unique'];
-  }
-  
+
+  const availableTypes = getAvailableChallengeTypes(level);
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
-  
-  // Simple random selection with slight preference for avoiding the last type
-  const avoidLastType = availableTypes.filter(t => t !== lastType);
-  type = rand(avoidLastType.length > 0 ? avoidLastType : availableTypes) as ChallengeType;
-  
+
+  // Cycle through challenge types before repeating
+  const usedSet = new Set(recentTypes);
+  let unusedTypes = availableTypes.filter(t => !usedSet.has(t));
+  if (unusedTypes.length === 0) {
+    unusedTypes = availableTypes;
+  }
+
+  let candidateTypes = unusedTypes;
+  if (lastType && candidateTypes.length > 1) {
+    candidateTypes = candidateTypes.filter(t => t !== lastType);
+  }
+
+  type = rand(candidateTypes) as ChallengeType;
   console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
@@ -76,42 +87,43 @@ export function createSimpleChallenge(
     
     while (attempts < maxAttempts) {
       // Generate a test challenge to check if it's unique
+      const testLength = getWordLength(level);
       let testLetter: string;
       let testCount: number;
-      
+
       if (type === 'vowels') {
         testCount = getVowelCount(level);
-        const challengeId = `${type}-${testCount}`;
+        const challengeId = `${type}-${testCount}-${testLength}`;
         if (!usedChallenges.has(challengeId)) {
           break;
         }
       } else if (type === 'contains') {
         testLetter = rand(letterSet);
         testCount = Math.max(2, Math.floor(level / 5) + 2);
-        const challengeId = `${type}-${testLetter}-${testCount}`;
+        const challengeId = `${type}-${testLetter}-${testCount}-${testLength}`;
         if (!usedChallenges.has(challengeId)) {
           break;
         }
       } else if (type === 'uses') {
         const requiredCount = Math.min(3, Math.floor(level / 5) + 2);
         const requiredLetters = letterSet.slice(0, requiredCount);
-        const challengeId = `${type}-${requiredLetters.join(',')}`;
+        const challengeId = `${type}-${requiredLetters.join(',')}-${testLength}`;
         if (!usedChallenges.has(challengeId)) {
           break;
         }
       } else if (type === 'unique') {
-        const challengeId = `${type}`;
+        const challengeId = `${type}-${testLength}`;
         if (!usedChallenges.has(challengeId)) {
           break;
         }
       } else {
         testLetter = rand(letterSet);
-        const challengeId = `${type}-${testLetter}`;
+        const challengeId = `${type}-${testLetter}-${testLength}`;
         if (!usedChallenges.has(challengeId)) {
           break;
         }
       }
-      
+
       // Try a different type
       type = rand(availableTypes) as ChallengeType;
       attempts++;
@@ -183,18 +195,18 @@ export function createSimpleChallenge(
   switch (type) {
     case 'start': {
       // Try different letters to find one that hasn't been used AND is in the letter set
+      const wordLength = getWordLength(level);
       let letter: string;
       let attempts = 0;
       const maxAttempts = 50; // Increase attempts since we need to find available letters
-      
+
       do {
         letter = rand(letterSet);
         attempts++;
-      } while (attempts < maxAttempts && usedChallenges?.has(`start-${letter}`));
+      } while (attempts < maxAttempts && usedChallenges?.has(`start-${letter}-${wordLength}`));
       
       console.log(`Selected letter '${letter}' for start challenge after ${attempts} attempts`);
       
-      const wordLength = getWordLength(level);
       const words = wordDatabase.findWordsStartingWith(letter, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
       const solution = wordDatabase.getRandomWord(validWords);
@@ -215,11 +227,11 @@ export function createSimpleChallenge(
       for (let attempt = 0; attempt < 10; attempt++) {
         const newLetter = rand(letterSet);
         if (newLetter === letter) continue;
-        
+
         const newWords = wordDatabase.findWordsStartingWith(newLetter, letterSet, usedWords);
         const newValidWords = newWords.filter(word => word.length >= wordLength);
         const newSolution = wordDatabase.getRandomWord(newValidWords);
-        if (newSolution) {
+        if (newSolution && !usedChallenges?.has(`start-${newLetter}-${wordLength}`)) {
           return {
             type,
             solution: newSolution.word,
@@ -264,18 +276,18 @@ export function createSimpleChallenge(
     
     case 'end': {
       // Try different letters to find one that hasn't been used AND is in the letter set
+      const wordLength = getWordLength(level);
       let letter: string;
       let attempts = 0;
       const maxAttempts = 50; // Increase attempts since we need to find available letters
-      
+
       do {
         letter = rand(letterSet);
         attempts++;
-      } while (attempts < maxAttempts && usedChallenges?.has(`end-${letter}`));
+      } while (attempts < maxAttempts && usedChallenges?.has(`end-${letter}-${wordLength}`));
       
       console.log(`Selected letter '${letter}' for end challenge after ${attempts} attempts`);
       
-      const wordLength = getWordLength(level);
       const words = wordDatabase.findWordsEndingWith(letter, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
       const solution = wordDatabase.getRandomWord(validWords);
@@ -296,11 +308,11 @@ export function createSimpleChallenge(
       for (let attempt = 0; attempt < 10; attempt++) {
         const newLetter = rand(letterSet);
         if (newLetter === letter) continue;
-        
+
         const newWords = wordDatabase.findWordsEndingWith(newLetter, letterSet, usedWords);
         const newValidWords = newWords.filter(word => word.length >= wordLength);
         const newSolution = wordDatabase.getRandomWord(newValidWords);
-        if (newSolution) {
+        if (newSolution && !usedChallenges?.has(`end-${newLetter}-${wordLength}`)) {
           return {
             type,
             solution: newSolution.word,
@@ -345,18 +357,18 @@ export function createSimpleChallenge(
     
     case 'middle': {
       // Try different letters to find one that hasn't been used AND is in the letter set
+      const wordLength = getWordLength(level);
       let letter: string;
       let attempts = 0;
       const maxAttempts = 50; // Increase attempts since we need to find available letters
-      
+
       do {
         letter = rand(letterSet);
         attempts++;
-      } while (attempts < maxAttempts && usedChallenges?.has(`middle-${letter}`));
+      } while (attempts < maxAttempts && usedChallenges?.has(`middle-${letter}-${wordLength}`));
       
       console.log(`Selected letter '${letter}' for middle challenge after ${attempts} attempts`);
       
-      const wordLength = getWordLength(level);
       const words = wordDatabase.findWordsWithMiddleLetter(letter, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
       const solution = wordDatabase.getRandomWord(validWords);
@@ -377,11 +389,11 @@ export function createSimpleChallenge(
       for (let attempt = 0; attempt < 10; attempt++) {
         const newLetter = rand(letterSet);
         if (newLetter === letter) continue;
-        
+
         const newWords = wordDatabase.findWordsWithMiddleLetter(newLetter, letterSet, usedWords);
         const newValidWords = newWords.filter(word => word.length >= wordLength);
         const newSolution = wordDatabase.getRandomWord(newValidWords);
-        if (newSolution) {
+        if (newSolution && !usedChallenges?.has(`middle-${newLetter}-${wordLength}`)) {
           return {
             type,
             solution: newSolution.word,
@@ -482,8 +494,16 @@ export function createSimpleChallenge(
 
     case 'contains': {
       const wordLength = getWordLength(level);
-      const letter = rand(letterSet);
       const count = Math.max(2, Math.floor(level / 5) + 2); // Always require at least 2 occurrences
+      let letter: string;
+      let attempts = 0;
+      const maxAttempts = 50;
+
+      do {
+        letter = rand(letterSet);
+        attempts++;
+      } while (attempts < maxAttempts && usedChallenges?.has(`contains-${letter}-${count}-${wordLength}`));
+
       const words = wordDatabase.findWordsContainingLetter(letter, count, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
       const solution = wordDatabase.getRandomWord(validWords);

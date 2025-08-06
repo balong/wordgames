@@ -8,8 +8,7 @@ import Message from './Message';
 import Confetti from './Confetti';
 import ChallengePreview from './ChallengePreview';
 import { createLetterSet } from '../_utils/gameLogic';
-import { describeChallenge } from '../_utils/gameLogic';
-import { createSimpleChallenge } from '../_utils/simpleChallenge';
+import { createSimpleChallenge, getAvailableChallengeTypes } from '../_utils/simpleChallenge';
 import { isWord } from '../_actions/wordQuery';
 import type { Challenge, ChallengeType, LetterSlot } from '../_types/game';
 
@@ -84,20 +83,21 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         // Update tracking for next iteration
         let challengeId: string;
         if (challenge.type === 'vowels') {
-          challengeId = `${challenge.type}-${challenge.count}`;
+          challengeId = `${challenge.type}-${challenge.count}-${challenge.requiredLength}`;
         } else if (challenge.type === 'contains') {
-          challengeId = `${challenge.type}-${challenge.letter}-${challenge.count}`;
+          challengeId = `${challenge.type}-${challenge.letter}-${challenge.count}-${challenge.requiredLength}`;
         } else if (challenge.type === 'uses') {
-          challengeId = `${challenge.type}-${challenge.letters?.join(',')}`;
+          challengeId = `${challenge.type}-${challenge.letters?.join(',')}-${challenge.requiredLength}`;
         } else if (challenge.type === 'unique') {
-          challengeId = `${challenge.type}`;
+          challengeId = `${challenge.type}-${challenge.requiredLength}`;
         } else {
-          challengeId = `${challenge.type}-${challenge.letter}`;
+          challengeId = `${challenge.type}-${challenge.letter}-${challenge.requiredLength}`;
         }
         futureUsedChallenges.add(challengeId);
         futureRecentTypes.push(challenge.type);
-        if (futureRecentTypes.length > 3) {
-          futureRecentTypes.shift();
+        const available = getAvailableChallengeTypes(futureLevel);
+        if (available.every(t => futureRecentTypes.includes(t))) {
+          futureRecentTypes.splice(0, futureRecentTypes.length, challenge.type);
         }
       } catch (error) {
         console.error(`Error generating preview challenge ${i}:`, error);
@@ -140,42 +140,48 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       // Create unique challenge identifier with specific letter/count
       let challengeId: string;
       if (challenge.type === 'vowels') {
-        challengeId = `${challenge.type}-${challenge.count}`;
+        challengeId = `${challenge.type}-${challenge.count}-${challenge.requiredLength}`;
       } else if (challenge.type === 'contains') {
-        challengeId = `${challenge.type}-${challenge.letter}-${challenge.count}`;
+        challengeId = `${challenge.type}-${challenge.letter}-${challenge.count}-${challenge.requiredLength}`;
       } else if (challenge.type === 'uses') {
-        challengeId = `${challenge.type}-${challenge.letters?.join(',')}`;
+        challengeId = `${challenge.type}-${challenge.letters?.join(',')}-${challenge.requiredLength}`;
       } else if (challenge.type === 'unique') {
-        challengeId = `${challenge.type}`;
+        challengeId = `${challenge.type}-${challenge.requiredLength}`;
       } else {
-        challengeId = `${challenge.type}-${challenge.letter}`;
+        challengeId = `${challenge.type}-${challenge.letter}-${challenge.requiredLength}`;
       }
-      setUsedChallenges(prev => new Set([...prev, challengeId]));
+      const updatedUsedChallenges = new Set(usedChallenges);
+      updatedUsedChallenges.add(challengeId);
+      setUsedChallenges(updatedUsedChallenges);
       console.log(`Added challenge to used set: ${challengeId}`);
-      
+
       setCurrentChallenge(challenge);
       setLastType(challenge.type);
-      
-      // Update recent types (keep last 3 types to avoid repetition)
-      setRecentTypes(prev => {
-        const newRecent = [...prev, challenge.type];
-        return newRecent.slice(-3); // Keep only last 3 types
-      });
-      
+
+      const newRecentTypes = (() => {
+        const arr = [...recentTypes, challenge.type];
+        const available = getAvailableChallengeTypes(currentLevel);
+        if (available.every(t => arr.includes(t))) {
+          return [challenge.type];
+        }
+        return arr;
+      })();
+      setRecentTypes(newRecentTypes);
+
       setUsedSolutions(used);
       applyTheme(challenge.theme);
       setSlots([]);
       setMessage(''); // Clear any previous messages
       setIsSuccess(false); // Clear success state
       setIsLoading(false);
-      
+
       // Generate upcoming challenges for preview
       const upcoming = await generateUpcomingChallenges(
         letters,
         currentLevel,
-        usedChallenges,
+        updatedUsedChallenges,
         usedWords,
-        recentTypes
+        newRecentTypes
       );
       setUpcomingChallenges(upcoming);
     } catch (error) {
