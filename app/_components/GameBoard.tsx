@@ -115,7 +115,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setIsLoading(false);
       
       // Generate upcoming challenges
-      generateUpcomingChallenges(letters, currentLevel, lastChallengeType);
+      generateUpcomingChallenges(letters, currentLevel, challenge.type);
     } catch (error) {
       console.error('Error generating challenge:', error);
       setMessage("Error loading challenge. Please try again.");
@@ -127,6 +127,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   const generateUpcomingChallenges = (letters: string[], currentLevel: number, lastType: ChallengeType | null) => {
     const upcoming: Challenge[] = [];
     
+    // Generate challenges for the next 2 levels (currentLevel + 1 and currentLevel + 2)
     for (let i = 1; i <= 2; i++) {
       try {
         const nextLevel = currentLevel + i;
@@ -145,7 +146,8 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       }
     }
     
-    setUpcomingChallenges(upcoming);
+    // Reverse the order so "Next 1" (immediate next) is at the bottom
+    setUpcomingChallenges(upcoming.reverse());
   };
 
   const applyTheme = (theme: [string, string]) => {
