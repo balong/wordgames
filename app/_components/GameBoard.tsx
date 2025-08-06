@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import LetterTile from './LetterTile';
 import WordArea from './WordArea';
 import Controls from './Controls';
@@ -32,7 +32,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     console.log('Starting game...');
     const newLetterSet = initialLetterSet || createLetterSet();
     console.log('Letter set:', newLetterSet);
@@ -48,7 +48,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     setCurrentChallenge(null);
     setIsLoading(true);
     nextPuzzle(newLetterSet, new Set(), 0, null);
-  };
+  }, [initialLetterSet]);
 
   const nextPuzzle = async (
     letters: string[],

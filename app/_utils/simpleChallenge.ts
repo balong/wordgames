@@ -184,7 +184,7 @@ export function createSimpleChallenge(
     type = 'start';
   }
 
-  const theme = THEMES[TYPES.indexOf(type as any)] as [string, string];
+  const theme = THEMES[TYPES.indexOf(type as (typeof TYPES)[number])] as [string, string];
   
   // Create appropriate challenge based on type
   switch (type) {
