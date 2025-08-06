@@ -452,7 +452,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         <div className="mb-4 opacity-50">
           {upcomingChallenges.slice().reverse().map((challenge, index) => (
             <div key={index} className="text-sm mb-1">
-              <span className="text-gray-500">Next {index === 0 ? 2 : 1}:</span>{' '}
+              <span className="text-gray-500">Next {index === 0 ? 3 : 2}:</span>{' '}
               <span dangerouslySetInnerHTML={{ __html: describeChallenge(challenge) }} />
             </div>
           ))}
