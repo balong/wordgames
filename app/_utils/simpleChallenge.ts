@@ -26,14 +26,12 @@ function getWordLength(level: number): number {
 
 function getVowelCount(level: number): number {
   // More gradual vowel progression
-  if (level <= 10) {
-    return 2; // Levels 1-10: 2 vowels
-  } else if (level <= 20) {
-    return 3; // Levels 11-20: 3 vowels
-  } else if (level <= 35) {
-    return 4; // Levels 21-35: 4 vowels
+  if (level <= 15) {
+    return 2; // Levels 1-15: 2 vowels
+  } else if (level <= 30) {
+    return 3; // Levels 16-30: 3 vowels
   } else {
-    return 5; // Levels 36+: 5 vowels
+    return 4; // Levels 31+: 4 vowels
   }
 }
 
@@ -65,19 +63,36 @@ export function createSimpleChallenge(
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
-  // Enhanced variety: avoid recent types and ensure better distribution
-  const recentTypesSet = new Set(recentTypes || []);
-  const avoidRecentTypes = availableTypes.filter(t => !recentTypesSet.has(t as ChallengeType));
-  const avoidLastType = (avoidRecentTypes.length > 0 ? avoidRecentTypes : availableTypes).filter(t => t !== lastType);
+  // Enhanced variety selection: avoid recent types and ensure all types get used
+  let candidateTypes = availableTypes;
   
-  if (avoidLastType.length === 0) {
-    // If all types are the same as lastType, use all available types
-    type = rand(availableTypes) as ChallengeType;
-  } else {
-    type = rand(avoidLastType) as ChallengeType;
+  // First, avoid the last type
+  candidateTypes = candidateTypes.filter(t => t !== lastType);
+  
+  // If we have recent types, try to avoid the most recent ones too
+  if (recentTypes && recentTypes.length > 0) {
+    const recentSet = new Set(recentTypes);
+    const nonRecentTypes = candidateTypes.filter(t => !recentSet.has(t as ChallengeType));
+    
+    // If we have types that haven't been used recently, prefer those
+    if (nonRecentTypes.length > 0) {
+      candidateTypes = nonRecentTypes;
+    }
   }
   
-  console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recent: ${recentTypes?.join(', ')})`);
+  // If no candidates remain, fall back to all available types except last
+  if (candidateTypes.length === 0) {
+    candidateTypes = availableTypes.filter(t => t !== lastType);
+  }
+  
+  // If still no candidates, use all available types
+  if (candidateTypes.length === 0) {
+    candidateTypes = availableTypes;
+  }
+  
+  type = rand(candidateTypes) as ChallengeType;
+  
+  console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recent: ${recentTypes?.join(', ') || 'none'})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
@@ -493,8 +508,7 @@ export function createSimpleChallenge(
     case 'contains': {
       const wordLength = getWordLength(level);
       const letter = rand(letterSet);
-      // Improved scaling: starts at 2, increases more gradually
-      const count = Math.max(2, Math.floor(level / 3) + 1); // 2 at level 1-2, 3 at level 3-5, 4 at level 6-8, etc.
+      const count = Math.max(2, Math.floor(level / 5) + 2); // Always require at least 2 occurrences
       const words = wordDatabase.findWordsContainingLetter(letter, count, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
       const solution = wordDatabase.getRandomWord(validWords);
@@ -541,8 +555,7 @@ export function createSimpleChallenge(
 
     case 'uses': {
       const wordLength = getWordLength(level);
-      // Improved scaling: starts at 2, increases more gradually, max 4
-      const requiredCount = Math.min(4, Math.floor(level / 3) + 1); // 2 at level 1-2, 3 at level 3-5, 4 at level 6-8, etc.
+      const requiredCount = Math.min(3, Math.floor(level / 5) + 2); // Start with 2, max 3
       const requiredLetters = letterSet.slice(0, requiredCount);
       const words = wordDatabase.findWordsUsingLetters(requiredLetters, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
