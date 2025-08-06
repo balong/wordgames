@@ -152,7 +152,7 @@ button:hover {
 /* Challenge preview animations */
 .challenge-preview-container {
   position: relative;
-  min-height: 140px;
+  min-height: 120px;
   margin-bottom: 1rem;
 }
 
@@ -171,16 +171,16 @@ button:hover {
 
 .challenge-preview-item.upcoming-1 {
   z-index: 1;
-  bottom: 40px;
+  bottom: 30px;
 }
 
 .challenge-preview-item.upcoming-2 {
   z-index: 0;
-  bottom: 80px;
+  bottom: 60px;
 }
 
 .animate-slide-down {
-  transform: translateY(40px) !important;
+  transform: translateY(30px) !important;
 }
 
 .animate-fade-out {

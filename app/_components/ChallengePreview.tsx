@@ -32,7 +32,7 @@ export default function ChallengePreview({
 
   return (
     <div className="challenge-preview-container">
-      {/* Upcoming challenges (lower opacity, positioned above current) */}
+      {/* Upcoming challenges (lower opacity, positioned between level and current) */}
       {upcomingChallenges.map((challenge, index) => (
         <div
           key={`upcoming-${index}`}
@@ -41,7 +41,7 @@ export default function ChallengePreview({
           }`}
           style={{
             opacity: 0.4,
-            transform: `translateY(${-(index + 1) * 40}px)`,
+            transform: `translateY(${-(index + 1) * 30}px)`,
             transition: animationState === 'animating' ? 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
           }}
         >
