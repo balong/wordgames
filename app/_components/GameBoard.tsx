@@ -114,8 +114,10 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setIsSuccess(false); // Clear success state
       setIsLoading(false);
       
-      // Generate upcoming challenges
-      generateUpcomingChallenges(letters, currentLevel, challenge.type);
+      // Generate upcoming challenges with updated state
+      const updatedUsedChallenges = new Set([...usedChallenges, challengeId]);
+      const updatedRecentTypes = [...recentTypes, challenge.type].slice(-3);
+      generateUpcomingChallenges(letters, currentLevel, challenge.type, updatedUsedChallenges, updatedRecentTypes);
     } catch (error) {
       console.error('Error generating challenge:', error);
       setMessage("Error loading challenge. Please try again.");
@@ -124,14 +126,31 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     }
   };
 
-  const generateUpcomingChallenges = (letters: string[], currentLevel: number, lastType: ChallengeType | null) => {
+  const generateUpcomingChallenges = (
+    letters: string[], 
+    currentLevel: number, 
+    lastType: ChallengeType | null,
+    updatedUsedChallenges?: Set<string>,
+    updatedRecentTypes?: ChallengeType[]
+  ) => {
     const upcoming: Challenge[] = [];
+    
+    // Use updated state if provided, otherwise use current state
+    const usedChallengesForGeneration = updatedUsedChallenges || usedChallenges;
+    const recentTypesForGeneration = updatedRecentTypes || recentTypes;
     
     // Generate challenges for the next 2 levels (currentLevel + 1 and currentLevel + 2)
     for (let i = 1; i <= 2; i++) {
       try {
         const nextLevel = currentLevel + i;
-        const challenge = createSimpleChallenge(letters, lastType, nextLevel, usedChallenges, usedWords, recentTypes);
+        const challenge = createSimpleChallenge(
+          letters, 
+          lastType, 
+          nextLevel, 
+          usedChallengesForGeneration, 
+          usedWords, 
+          recentTypesForGeneration
+        );
         upcoming.push(challenge);
       } catch (error) {
         console.error(`Error generating upcoming challenge ${i}:`, error);
