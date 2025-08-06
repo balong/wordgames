@@ -63,9 +63,14 @@ export function createSimpleChallenge(
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
-  // Simple random selection with slight preference for avoiding the last type
+  // Never repeat the same challenge type twice in a row
   const avoidLastType = availableTypes.filter(t => t !== lastType);
-  type = rand(avoidLastType.length > 0 ? avoidLastType : availableTypes) as ChallengeType;
+  if (avoidLastType.length === 0) {
+    // If all types are the same as lastType, use all available types
+    type = rand(availableTypes) as ChallengeType;
+  } else {
+    type = rand(avoidLastType) as ChallengeType;
+  }
   
   console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
   
