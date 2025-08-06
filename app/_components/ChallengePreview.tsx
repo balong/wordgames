@@ -32,7 +32,7 @@ export default function ChallengePreview({
 
   return (
     <div className="challenge-preview-container">
-      {/* Upcoming challenges (lower opacity, positioned above) */}
+      {/* Upcoming challenges (lower opacity, positioned above current) */}
       {upcomingChallenges.map((challenge, index) => (
         <div
           key={`upcoming-${index}`}
@@ -41,7 +41,7 @@ export default function ChallengePreview({
           }`}
           style={{
             opacity: 0.4,
-            transform: `translateY(${-(index + 1) * 60}px)`,
+            transform: `translateY(${-(index + 1) * 40}px)`,
             transition: animationState === 'animating' ? 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
           }}
         >
@@ -55,12 +55,12 @@ export default function ChallengePreview({
       {/* Current challenge (full opacity, at bottom) */}
       <div
         className={`challenge-preview-item current ${
-          animationState === 'animating' ? 'animate-slide-up' : ''
+          animationState === 'animating' ? 'animate-fade-out' : ''
         }`}
         style={{
-          opacity: 1,
-          transform: animationState === 'animating' ? 'translateY(60px)' : 'translateY(0)',
-          transition: animationState === 'animating' ? 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
+          opacity: animationState === 'animating' ? 0 : 1,
+          transform: 'translateY(0)',
+          transition: animationState === 'animating' ? 'opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
         }}
       >
         <div 
