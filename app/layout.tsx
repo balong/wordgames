@@ -8,10 +8,8 @@ const baloo2 = Baloo_2({
   variable: "--font-baloo-2"
 });
 
-
-
 export const metadata: Metadata = {
-  title: "Letter Vibes",
+  title: "Word Games",
   description: "A word puzzle game where you create words from letter tiles",
 };
 
