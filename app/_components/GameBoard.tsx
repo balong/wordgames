@@ -108,6 +108,8 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setUsedSolutions(used);
       applyTheme(challenge.theme);
       setSlots([]);
+      setMessage(''); // Clear any previous messages
+      setIsSuccess(false); // Clear success state
       setIsLoading(false);
     } catch (error) {
       console.error('Error generating challenge:', error);
