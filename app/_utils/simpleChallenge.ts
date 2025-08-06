@@ -259,10 +259,11 @@ export function createSimpleChallenge(
       // If still no solution, use a fallback but log the issue
       console.warn(`Could not find ${wordLength}+ letter word starting with any available letter at level ${level}`);
       const fallbackSolution = wordDatabase.getRandomWord(words);
+      const fallbackLetter = fallbackSolution?.word[0] || letterSet[0];
       return {
         type,
         solution: fallbackSolution?.word || 'CAT',
-        letter: fallbackSolution?.word[0] || 'C',
+        letter: fallbackLetter,
         requiredLength: wordLength,
         theme
       };
@@ -339,10 +340,11 @@ export function createSimpleChallenge(
       // If still no solution, use a fallback but log the issue
       console.warn(`Could not find ${wordLength}+ letter word ending with any available letter at level ${level}`);
       const fallbackSolution = wordDatabase.getRandomWord(words);
+      const fallbackLetter = fallbackSolution?.word[fallbackSolution.word.length - 1] || letterSet[0];
       return {
         type,
         solution: fallbackSolution?.word || 'CAT',
-        letter: fallbackSolution?.word[fallbackSolution.word.length - 1] || 'T',
+        letter: fallbackLetter,
         requiredLength: wordLength,
         theme
       };
@@ -415,10 +417,11 @@ export function createSimpleChallenge(
       // If still no solution, use a fallback but log the issue
       console.warn(`Could not find ${wordLength}+ letter word with any letter in middle at level ${level}`);
       const fallbackSolution = wordDatabase.getRandomWord(words);
+      const fallbackLetter = fallbackSolution?.word[Math.floor(fallbackSolution.word.length / 2)] || letterSet[0];
       return {
         type,
         solution: fallbackSolution?.word || 'CAT',
-        letter: fallbackSolution?.word[Math.floor(fallbackSolution.word.length / 2)] || 'A',
+        letter: fallbackLetter,
         requiredLength: wordLength,
         theme
       };

@@ -206,7 +206,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         setIsSuccess(false);
         setShowConfetti(false);
         nextPuzzle(letterSet, usedSolutions, newLevel, lastType);
-      }, 1200);
+      }, 2500);
     } else {
       // Provide specific feedback based on challenge type
       let feedback = "Try again!";
