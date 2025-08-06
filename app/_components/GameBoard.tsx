@@ -109,6 +109,14 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         challenge = createSimpleChallenge(letters, lastChallengeType, currentLevel, usedChallenges, usedWords, recentTypes);
       }
       
+      // Update recent types for the challenge we're using (whether it was upcoming or newly generated)
+      setRecentTypes(prev => {
+        const newRecent = [...prev, challenge.type];
+        const result = newRecent.slice(-7); // Keep last 7 types (all challenge types)
+        console.log(`Updated recentTypes: ${result.join(', ')} (added: ${challenge.type})`);
+        return result;
+      });
+      
       console.log('Challenge generated:', challenge);
       
       // Create unique challenge identifier with specific letter/count
@@ -129,12 +137,6 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       
       setCurrentChallenge(challenge);
       setLastType(challenge.type);
-      
-      // Update recent types (keep all types to ensure rotation)
-      setRecentTypes(prev => {
-        const newRecent = [...prev, challenge.type];
-        return newRecent.slice(-7); // Keep last 7 types (all challenge types)
-      });
       
       setUsedSolutions(used);
       applyTheme(challenge.theme);
