@@ -441,7 +441,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       {/* Upcoming challenges preview */}
       {upcomingChallenges.length > 0 && (
         <div className="mb-4 opacity-50">
-          {upcomingChallenges.map((challenge, index) => (
+          {upcomingChallenges.slice().reverse().map((challenge, index) => (
             <div key={index} className="text-sm mb-1">
               <span className="text-gray-500">Next {index + 1}:</span>{' '}
               <span dangerouslySetInnerHTML={{ __html: describeChallenge(challenge) }} />
