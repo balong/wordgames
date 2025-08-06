@@ -53,9 +53,6 @@ export function createSimpleChallenge(
   // Use rotation system to ensure all types are used before repeating
   let availableTypes: ChallengeType[];
   
-  // At higher levels, be more flexible with rotation to ensure variety
-  const isHighLevel = level > 15;
-  
   if (recentTypes && recentTypes.length > 0) {
     // Find types that haven't been used recently
     const unusedTypes = allTypes.filter(t => !recentTypes.includes(t));
@@ -65,34 +62,35 @@ export function createSimpleChallenge(
       availableTypes = unusedTypes;
       console.log(`Using unused types: ${unusedTypes.join(', ')}`);
     } else {
-      // If all types have been used, start fresh
-      availableTypes = allTypes;
-      console.log(`All types used, starting fresh with: ${allTypes.join(', ')}`);
+      // If all types have been used, start fresh but still avoid lastType
+      availableTypes = allTypes.filter(t => t !== lastType);
+      console.log(`All types used, starting fresh but avoiding lastType: ${availableTypes.join(', ')}`);
     }
   } else {
-    // No recent types, use all types
-    availableTypes = allTypes;
-    console.log(`No recent types, using all: ${allTypes.join(', ')}`);
+    // No recent types, use all types but avoid lastType
+    availableTypes = allTypes.filter(t => t !== lastType);
+    console.log(`No recent types, using all but avoiding lastType: ${availableTypes.join(', ')}`);
   }
   
-  // At high levels, be less strict about avoiding the last type to ensure variety
-  if (isHighLevel && lastType && availableTypes.length <= 2) {
-    // If we have very few types available, include the last type to avoid getting stuck
-    availableTypes = allTypes;
-    console.log(`High level detected, using all types to ensure variety`);
-  }
-  
-  // Never repeat the same challenge type twice in a row (unless at high levels with limited options)
-  const avoidLastType = availableTypes.filter(t => t !== lastType);
-  if (avoidLastType.length === 0) {
-    // If all types are the same as lastType, use all available types
-    type = rand(availableTypes) as ChallengeType;
-  } else if (isHighLevel && availableTypes.length <= 3) {
-    // At high levels with limited options, be more flexible
-    type = rand(availableTypes) as ChallengeType;
-    console.log(`High level: allowing last type to ensure variety`);
+  // Never repeat the same challenge type twice in a row
+  // availableTypes already excludes lastType, so we can use it directly
+  if (availableTypes.length === 0) {
+    // If no types available (shouldn't happen), fallback to all types except lastType
+    const fallbackTypes = allTypes.filter(t => t !== lastType);
+    type = rand(fallbackTypes) as ChallengeType;
   } else {
-    type = rand(avoidLastType) as ChallengeType;
+    type = rand(availableTypes) as ChallengeType;
+  }
+  
+  // Double-check: if we somehow still got the same type, force a different one
+  if (type === lastType && lastType !== null) {
+    console.log(`ERROR: Still got same type as lastType: ${type}`);
+    const allTypes: ChallengeType[] = ['start', 'end', 'vowels', 'contains', 'middle', 'uses', 'unique'];
+    const differentTypes = allTypes.filter(t => t !== lastType);
+    if (differentTypes.length > 0) {
+      type = differentTypes[Math.floor(Math.random() * differentTypes.length)];
+      console.log(`Forced different type: ${type}`);
+    }
   }
   
   console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recentTypes: ${recentTypes?.join(', ') || 'none'})`);
@@ -100,55 +98,55 @@ export function createSimpleChallenge(
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
     let attempts = 0;
-    const maxAttempts = 20; // Reduced attempts to avoid getting stuck
-    
-    // At higher levels, be less strict about duplicates to ensure variety
-    const isHighLevel = level > 15;
-    const maxDuplicateTolerance = isHighLevel ? 3 : 1; // Allow more duplicates at high levels
+    const maxAttempts = 50; // Increase attempts to find unique challenges
     
     while (attempts < maxAttempts) {
       // Generate a test challenge to check if it's unique
       let testLetter: string;
       let testCount: number;
-      let challengeId: string;
       
       if (type === 'vowels') {
         testCount = getVowelCount(level);
-        challengeId = `${type}-${testCount}`;
+        const challengeId = `${type}-${testCount}`;
+        if (!usedChallenges.has(challengeId)) {
+          break;
+        }
       } else if (type === 'contains') {
         testLetter = rand(letterSet);
         testCount = Math.max(2, Math.floor(level / 5) + 2);
-        challengeId = `${type}-${testLetter}-${testCount}`;
+        const challengeId = `${type}-${testLetter}-${testCount}`;
+        if (!usedChallenges.has(challengeId)) {
+          break;
+        }
       } else if (type === 'uses') {
         const requiredCount = Math.min(3, Math.floor(level / 5) + 2);
         const requiredLetters = letterSet.slice(0, requiredCount);
-        challengeId = `${type}-${requiredLetters.join(',')}`;
+        const challengeId = `${type}-${requiredLetters.join(',')}`;
+        if (!usedChallenges.has(challengeId)) {
+          break;
+        }
       } else if (type === 'unique') {
-        challengeId = `${type}`;
+        const challengeId = `${type}`;
+        if (!usedChallenges.has(challengeId)) {
+          break;
+        }
       } else {
         testLetter = rand(letterSet);
-        challengeId = `${type}-${testLetter}`;
-      }
-      
-      // Check if this challenge has been used too many times
-      const challengeCount = Array.from(usedChallenges).filter(id => id.startsWith(type)).length;
-      
-      if (challengeCount < maxDuplicateTolerance) {
-        break; // Accept this challenge
+        const challengeId = `${type}-${testLetter}`;
+        if (!usedChallenges.has(challengeId)) {
+          break;
+        }
       }
       
       // Try a different type while maintaining rotation
       const remainingTypes = availableTypes.filter(t => t !== type);
       if (remainingTypes.length > 0) {
         type = rand(remainingTypes) as ChallengeType;
-      } else {
-        // If no more types available, just use the current one
-        break;
       }
       attempts++;
     }
     
-    console.log(`Found challenge type after ${attempts} attempts: ${type} (level: ${level}, highLevel: ${isHighLevel})`);
+    console.log(`Found unique challenge type after ${attempts} attempts: ${type}`);
   }
 
   // Validate that this challenge type has available words

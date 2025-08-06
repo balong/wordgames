@@ -109,6 +109,8 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         challenge = createSimpleChallenge(letters, lastChallengeType, currentLevel, usedChallenges, usedWords, recentTypes);
       }
       
+
+      
       // Update recent types for the challenge we're using (whether it was upcoming or newly generated)
       setRecentTypes(prev => {
         const newRecent = [...prev, challenge.type];
