@@ -148,3 +148,38 @@ button:hover {
 .animate-pop {
   animation: popIn 0.35s cubic-bezier(0.2, 1.3, 0.4, 1) forwards;
 }
+
+/* Challenge preview animations */
+.challenge-preview-container {
+  position: relative;
+  min-height: 120px;
+  margin-bottom: 1rem;
+}
+
+.challenge-preview-item {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  transition: all 0.5s ease-in-out;
+}
+
+.challenge-preview-item.current {
+  position: relative;
+  z-index: 2;
+}
+
+.challenge-preview-item.upcoming-1 {
+  z-index: 1;
+}
+
+.challenge-preview-item.upcoming-2 {
+  z-index: 0;
+}
+
+.animate-slide-down {
+  transform: translateY(40px) !important;
+}
+
+.animate-slide-up {
+  transform: translateY(-40px) !important;
+}

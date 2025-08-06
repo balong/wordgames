@@ -6,6 +6,7 @@ import WordArea from './WordArea';
 import Controls from './Controls';
 import Message from './Message';
 import Confetti from './Confetti';
+import ChallengePreview from './ChallengePreview';
 import { createLetterSet } from '../_utils/gameLogic';
 import { describeChallenge } from '../_utils/gameLogic';
 import { createSimpleChallenge } from '../_utils/simpleChallenge';
@@ -32,6 +33,10 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Challenge preview system
+  const [upcomingChallenges, setUpcomingChallenges] = useState<Challenge[]>([]);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   // Sound effects
   const [popSound, setPopSound] = useState<HTMLAudioElement | null>(null);
   const [shineSound, setShineSound] = useState<HTMLAudioElement | null>(null);
@@ -48,6 +53,58 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     
     setPopSound(pop);
     setShineSound(shine);
+  }, []);
+
+  const generateUpcomingChallenges = useCallback(async (
+    letters: string[],
+    currentLevel: number,
+    usedChallenges: Set<string>,
+    usedWords: Set<string>,
+    recentTypes: ChallengeType[]
+  ) => {
+    const upcoming: Challenge[] = [];
+    
+    for (let i = 1; i <= 2; i++) {
+      const futureLevel = currentLevel + i;
+      const futureUsedChallenges = new Set(usedChallenges);
+      const futureUsedWords = new Set(usedWords);
+      const futureRecentTypes = [...recentTypes];
+      
+      try {
+        const challenge = createSimpleChallenge(
+          letters, 
+          null, // No last type for preview
+          futureLevel, 
+          futureUsedChallenges, 
+          futureUsedWords, 
+          futureRecentTypes
+        );
+        upcoming.push(challenge);
+        
+        // Update tracking for next iteration
+        let challengeId: string;
+        if (challenge.type === 'vowels') {
+          challengeId = `${challenge.type}-${challenge.count}`;
+        } else if (challenge.type === 'contains') {
+          challengeId = `${challenge.type}-${challenge.letter}-${challenge.count}`;
+        } else if (challenge.type === 'uses') {
+          challengeId = `${challenge.type}-${challenge.letters?.join(',')}`;
+        } else if (challenge.type === 'unique') {
+          challengeId = `${challenge.type}`;
+        } else {
+          challengeId = `${challenge.type}-${challenge.letter}`;
+        }
+        futureUsedChallenges.add(challengeId);
+        futureRecentTypes.push(challenge.type);
+        if (futureRecentTypes.length > 3) {
+          futureRecentTypes.shift();
+        }
+      } catch (error) {
+        console.error(`Error generating preview challenge ${i}:`, error);
+      }
+    }
+    
+    return upcoming;
   }, []);
 
   const startGame = useCallback(() => {
@@ -111,6 +168,16 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setMessage(''); // Clear any previous messages
       setIsSuccess(false); // Clear success state
       setIsLoading(false);
+      
+      // Generate upcoming challenges for preview
+      const upcoming = await generateUpcomingChallenges(
+        letters,
+        currentLevel,
+        usedChallenges,
+        usedWords,
+        recentTypes
+      );
+      setUpcomingChallenges(upcoming);
     } catch (error) {
       console.error('Error generating challenge:', error);
       setMessage("Error loading challenge. Please try again.");
@@ -251,7 +318,11 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         setSlots([]);
         setIsSuccess(false);
         setShowConfetti(false);
-        nextPuzzle(letterSet, usedSolutions, newLevel, lastType);
+        
+        // Start animation
+        setIsAnimating(true);
+        
+        // After animation completes, nextPuzzle will be called with the new level
       }, 2500);
     } else {
       // Provide specific feedback based on challenge type
@@ -339,6 +410,12 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     }
   };
 
+  const handleAnimationComplete = () => {
+    setIsAnimating(false);
+    const newLevel = level; // This will be the updated level
+    nextPuzzle(letterSet, usedSolutions, newLevel, lastType);
+  };
+
   const handleNewGame = () => {
     startGame();
   };
@@ -363,9 +440,11 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       <h1>Word Games</h1>
       <div className="text-sm text-gray-600 mb-2">Level {level}</div>
       
-      <div 
-        id="challengeDesc"
-        dangerouslySetInnerHTML={{ __html: describeChallenge(currentChallenge) }}
+      <ChallengePreview
+        currentChallenge={currentChallenge}
+        upcomingChallenges={upcomingChallenges}
+        isAnimating={isAnimating}
+        onAnimationComplete={handleAnimationComplete}
       />
       
       <WordArea slots={slots} onSlotClick={removeSlot} />
