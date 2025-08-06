@@ -60,13 +60,16 @@ export function createSimpleChallenge(
     if (unusedTypes.length > 0) {
       // Use types that haven't been used recently
       availableTypes = unusedTypes;
+      console.log(`Using unused types: ${unusedTypes.join(', ')}`);
     } else {
       // If all types have been used, start fresh
       availableTypes = allTypes;
+      console.log(`All types used, starting fresh with: ${allTypes.join(', ')}`);
     }
   } else {
     // No recent types, use all types
     availableTypes = allTypes;
+    console.log(`No recent types, using all: ${allTypes.join(', ')}`);
   }
   
   // Never repeat the same challenge type twice in a row
@@ -78,7 +81,7 @@ export function createSimpleChallenge(
     type = rand(avoidLastType) as ChallengeType;
   }
   
-  console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
+  console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recentTypes: ${recentTypes?.join(', ') || 'none'})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
@@ -123,8 +126,11 @@ export function createSimpleChallenge(
         }
       }
       
-      // Try a different type
-      type = rand(availableTypes) as ChallengeType;
+      // Try a different type while maintaining rotation
+      const remainingTypes = availableTypes.filter(t => t !== type);
+      if (remainingTypes.length > 0) {
+        type = rand(remainingTypes) as ChallengeType;
+      }
       attempts++;
     }
     
