@@ -96,9 +96,12 @@ h1 {
 }
 
 .controls {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  max-width: 320px;
   justify-content: center;
+  margin: 0 auto;
 }
 
 button {

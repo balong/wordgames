@@ -17,15 +17,15 @@ export default function Controls({
 }: ControlsProps) {
   return (
     <div className="controls">
+      <button onClick={onClear}>
+        Clear
+      </button>
       <button
         onClick={onSubmit}
         disabled={!gameActive}
         style={{ opacity: !gameActive ? 0.5 : undefined, cursor: !gameActive ? 'not-allowed' : undefined }}
       >
         Submit
-      </button>
-      <button onClick={onClear}>
-        Clear
       </button>
       <button
         onClick={onReveal}
