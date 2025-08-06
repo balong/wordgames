@@ -41,10 +41,11 @@ h1 {
 }
 
 #tiles {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 0.6rem;
-  max-width: 360px;
+  max-width: 280px;
   padding: 0 0.5rem;
   justify-content: center;
   margin-bottom: 1rem;

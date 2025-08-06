@@ -322,6 +322,8 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         dangerouslySetInnerHTML={{ __html: describeChallenge(currentChallenge) }}
       />
       
+      <WordArea slots={slots} onSlotClick={removeSlot} />
+      
       <div id="tiles">
         {letterSet.map((letter, index) => (
           <LetterTile
@@ -332,8 +334,6 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
           />
         ))}
       </div>
-      
-      <WordArea slots={slots} onSlotClick={removeSlot} />
       
       <Controls
         onSubmit={handleSubmit}
