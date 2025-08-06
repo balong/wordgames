@@ -63,34 +63,23 @@ export function createSimpleChallenge(
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
-  // Enhanced variety selection: avoid recent types and ensure all types get used
-  let candidateTypes = availableTypes;
+  // Never repeat the same challenge type twice in a row, and avoid recent types for better variety
+  let preferredTypes = availableTypes.filter(t => t !== lastType);
   
-  // First, avoid the last type
-  candidateTypes = candidateTypes.filter(t => t !== lastType);
-  
-  // If we have recent types, try to avoid the most recent ones too
+  // If we have recent types, try to avoid them too for better variety
   if (recentTypes && recentTypes.length > 0) {
-    const recentSet = new Set(recentTypes);
-    const nonRecentTypes = candidateTypes.filter(t => !recentSet.has(t as ChallengeType));
-    
-    // If we have types that haven't been used recently, prefer those
-    if (nonRecentTypes.length > 0) {
-      candidateTypes = nonRecentTypes;
+    const avoidRecent = preferredTypes.filter(t => !recentTypes.includes(t as ChallengeType));
+    if (avoidRecent.length > 0) {
+      preferredTypes = avoidRecent;
     }
   }
   
-  // If no candidates remain, fall back to all available types except last
-  if (candidateTypes.length === 0) {
-    candidateTypes = availableTypes.filter(t => t !== lastType);
+  if (preferredTypes.length === 0) {
+    // If all types are the same as lastType, use all available types
+    type = rand(availableTypes) as ChallengeType;
+  } else {
+    type = rand(preferredTypes) as ChallengeType;
   }
-  
-  // If still no candidates, use all available types
-  if (candidateTypes.length === 0) {
-    candidateTypes = availableTypes;
-  }
-  
-  type = rand(candidateTypes) as ChallengeType;
   
   console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recent: ${recentTypes?.join(', ') || 'none'})`);
   
