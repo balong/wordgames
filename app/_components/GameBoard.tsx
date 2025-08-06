@@ -226,16 +226,16 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setUsedWords(prev => new Set([...prev, word.toLowerCase()]));
       console.log(`Added word '${word}' to used words set`);
       
-      // Play shine sound for challenge completion (first second only)
+      // Play shine sound for challenge completion (first 2 seconds only)
       if (shineSound) {
         shineSound.currentTime = 0;
         shineSound.play().catch(err => console.log('Sound play failed:', err));
         
-        // Stop the sound after 1 second
+        // Stop the sound after 2 seconds
         setTimeout(() => {
           shineSound.pause();
           shineSound.currentTime = 0;
-        }, 1000);
+        }, 2000);
       }
       
       setMessage("✔️ Great!");
