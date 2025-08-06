@@ -43,8 +43,6 @@ export function createSimpleChallenge(
   usedWords?: Set<string>,
   recentTypes?: ChallengeType[]
 ): Challenge {
-  let type: ChallengeType;
-  
   // Get available challenge types based on level - introduce new types earlier for better balance
   let availableTypes: string[] = ['start', 'end', 'vowels'];
   
@@ -63,25 +61,32 @@ export function createSimpleChallenge(
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
-  // Never repeat the same challenge type twice in a row, and avoid recent types for better variety
-  let preferredTypes = availableTypes.filter(t => t !== lastType);
+  // Ensure we cycle through all available types before repeating
+  let type: ChallengeType;
   
-  // If we have recent types, try to avoid them too for better variety
   if (recentTypes && recentTypes.length > 0) {
-    const avoidRecent = preferredTypes.filter(t => !recentTypes.includes(t as ChallengeType));
-    if (avoidRecent.length > 0) {
-      preferredTypes = avoidRecent;
+    // Get types that haven't been used recently
+    const unusedTypes = availableTypes.filter(t => !recentTypes.includes(t as ChallengeType));
+    
+    if (unusedTypes.length > 0) {
+      // Use a type that hasn't been used recently
+      type = rand(unusedTypes) as ChallengeType;
+      console.log(`Selected unused challenge type: ${type} (recent types: ${recentTypes.join(', ')})`);
+    } else {
+      // All types have been used, start fresh cycle
+      type = rand(availableTypes) as ChallengeType;
+      console.log(`Starting new cycle with challenge type: ${type}`);
     }
-  }
-  
-  if (preferredTypes.length === 0) {
-    // If all types are the same as lastType, use all available types
-    type = rand(availableTypes) as ChallengeType;
   } else {
-    type = rand(preferredTypes) as ChallengeType;
+    // No recent types, just avoid the last type
+    const avoidLastType = availableTypes.filter(t => t !== lastType);
+    if (avoidLastType.length === 0) {
+      type = rand(availableTypes) as ChallengeType;
+    } else {
+      type = rand(avoidLastType) as ChallengeType;
+    }
+    console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
   }
-  
-  console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recent: ${recentTypes?.join(', ') || 'none'})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
