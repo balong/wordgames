@@ -152,7 +152,7 @@ button:hover {
 /* Challenge preview animations */
 .challenge-preview-container {
   position: relative;
-  min-height: 120px;
+  min-height: 180px;
   margin-bottom: 1rem;
 }
 
@@ -160,26 +160,29 @@ button:hover {
   position: absolute;
   width: 100%;
   text-align: center;
-  transition: all 0.5s ease-in-out;
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .challenge-preview-item.current {
   position: relative;
   z-index: 2;
+  bottom: 0;
 }
 
 .challenge-preview-item.upcoming-1 {
   z-index: 1;
+  bottom: 60px;
 }
 
 .challenge-preview-item.upcoming-2 {
   z-index: 0;
+  bottom: 120px;
 }
 
 .animate-slide-down {
-  transform: translateY(40px) !important;
+  transform: translateY(60px) !important;
 }
 
 .animate-slide-up {
-  transform: translateY(-40px) !important;
+  transform: translateY(60px) !important;
 }

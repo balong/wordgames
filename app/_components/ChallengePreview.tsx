@@ -25,14 +25,14 @@ export default function ChallengePreview({
       const timer = setTimeout(() => {
         setAnimationState('complete');
         onAnimationComplete();
-      }, 500); // Animation duration
+      }, 800); // Animation duration - matches CSS transition
       return () => clearTimeout(timer);
     }
   }, [isAnimating, onAnimationComplete]);
 
   return (
     <div className="challenge-preview-container">
-      {/* Upcoming challenges (lower opacity) */}
+      {/* Upcoming challenges (lower opacity, positioned above) */}
       {upcomingChallenges.map((challenge, index) => (
         <div
           key={`upcoming-${index}`}
@@ -41,8 +41,8 @@ export default function ChallengePreview({
           }`}
           style={{
             opacity: 0.4,
-            transform: `translateY(${(index + 1) * 40}px)`,
-            transition: animationState === 'animating' ? 'all 0.5s ease-in-out' : 'none'
+            transform: `translateY(${-(index + 1) * 60}px)`,
+            transition: animationState === 'animating' ? 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
           }}
         >
           <div 
@@ -52,15 +52,15 @@ export default function ChallengePreview({
         </div>
       ))}
       
-      {/* Current challenge (full opacity) */}
+      {/* Current challenge (full opacity, at bottom) */}
       <div
         className={`challenge-preview-item current ${
           animationState === 'animating' ? 'animate-slide-up' : ''
         }`}
         style={{
           opacity: 1,
-          transform: animationState === 'animating' ? 'translateY(-40px)' : 'translateY(0)',
-          transition: animationState === 'animating' ? 'all 0.5s ease-in-out' : 'none'
+          transform: animationState === 'animating' ? 'translateY(60px)' : 'translateY(0)',
+          transition: animationState === 'animating' ? 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
         }}
       >
         <div 
