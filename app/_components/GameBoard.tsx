@@ -32,6 +32,24 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Sound effects
+  const [popSound, setPopSound] = useState<HTMLAudioElement | null>(null);
+  const [shineSound, setShineSound] = useState<HTMLAudioElement | null>(null);
+
+  // Initialize sound effects
+  useEffect(() => {
+    const pop = new Audio('/minimal-pop-click-ui-3-198303.mp3');
+    const shine = new Audio('/shine-9-268911.mp3');
+    
+    // Set shine sound to play only first second
+    shine.addEventListener('loadedmetadata', () => {
+      shine.currentTime = 0;
+    });
+    
+    setPopSound(pop);
+    setShineSound(shine);
+  }, []);
+
   const startGame = useCallback(() => {
     console.log('Starting game...');
     const newLetterSet = initialLetterSet || createLetterSet();
@@ -111,6 +129,12 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       letter
     };
     setSlots(prev => [...prev, newSlot]);
+    
+    // Play pop sound when letter is clicked
+    if (popSound) {
+      popSound.currentTime = 0;
+      popSound.play().catch(err => console.log('Sound play failed:', err));
+    }
   };
 
   const removeSlot = (id: string) => {
@@ -149,6 +173,14 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     const isValidWord = await isWord(word);
     if (!isValidWord) {
       setMessage("Not a real word");
+      setIsSuccess(false);
+      return;
+    }
+    
+    // Check word length requirement
+    const requiredLength = currentChallenge.requiredLength || 3;
+    if (word.length < requiredLength) {
+      setMessage(`Word must be at least ${requiredLength} letters long`);
       setIsSuccess(false);
       return;
     }
@@ -193,6 +225,18 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       // Add the word to used words set
       setUsedWords(prev => new Set([...prev, word.toLowerCase()]));
       console.log(`Added word '${word}' to used words set`);
+      
+      // Play shine sound for challenge completion (first second only)
+      if (shineSound) {
+        shineSound.currentTime = 0;
+        shineSound.play().catch(err => console.log('Sound play failed:', err));
+        
+        // Stop the sound after 1 second
+        setTimeout(() => {
+          shineSound.pause();
+          shineSound.currentTime = 0;
+        }, 1000);
+      }
       
       setMessage("✔️ Great!");
       setIsSuccess(true);
