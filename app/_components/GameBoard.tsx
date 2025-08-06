@@ -67,7 +67,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     setCurrentChallenge(null);
     setIsLoading(true);
     
-    // Generate initial upcoming challenges
+    // Generate initial upcoming challenges (for levels 1 and 2)
     const initialUpcoming: Challenge[] = [];
     for (let i = 1; i <= 2; i++) {
       try {
@@ -443,7 +443,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
         <div className="mb-4 opacity-50">
           {upcomingChallenges.map((challenge, index) => (
             <div key={index} className="text-sm mb-1">
-              <span className="text-gray-500">Next {2 - index}:</span>{' '}
+              <span className="text-gray-500">Next {index + 1}:</span>{' '}
               <span dangerouslySetInnerHTML={{ __html: describeChallenge(challenge) }} />
             </div>
           ))}
