@@ -26,12 +26,14 @@ function getWordLength(level: number): number {
 
 function getVowelCount(level: number): number {
   // More gradual vowel progression
-  if (level <= 15) {
-    return 2; // Levels 1-15: 2 vowels
-  } else if (level <= 30) {
-    return 3; // Levels 16-30: 3 vowels
+  if (level <= 10) {
+    return 2; // Levels 1-10: 2 vowels
+  } else if (level <= 20) {
+    return 3; // Levels 11-20: 3 vowels
+  } else if (level <= 35) {
+    return 4; // Levels 21-35: 4 vowels
   } else {
-    return 4; // Levels 31+: 4 vowels
+    return 5; // Levels 36+: 5 vowels
   }
 }
 
@@ -63,8 +65,11 @@ export function createSimpleChallenge(
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
-  // Never repeat the same challenge type twice in a row
-  const avoidLastType = availableTypes.filter(t => t !== lastType);
+  // Enhanced variety: avoid recent types and ensure better distribution
+  const recentTypesSet = new Set(recentTypes || []);
+  const avoidRecentTypes = availableTypes.filter(t => !recentTypesSet.has(t as ChallengeType));
+  const avoidLastType = (avoidRecentTypes.length > 0 ? avoidRecentTypes : availableTypes).filter(t => t !== lastType);
+  
   if (avoidLastType.length === 0) {
     // If all types are the same as lastType, use all available types
     type = rand(availableTypes) as ChallengeType;
@@ -72,7 +77,7 @@ export function createSimpleChallenge(
     type = rand(avoidLastType) as ChallengeType;
   }
   
-  console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
+  console.log(`Selected challenge type: ${type} (avoided: ${lastType}, recent: ${recentTypes?.join(', ')})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
@@ -488,7 +493,8 @@ export function createSimpleChallenge(
     case 'contains': {
       const wordLength = getWordLength(level);
       const letter = rand(letterSet);
-      const count = Math.max(2, Math.floor(level / 5) + 2); // Always require at least 2 occurrences
+      // Improved scaling: starts at 2, increases more gradually
+      const count = Math.max(2, Math.floor(level / 3) + 1); // 2 at level 1-2, 3 at level 3-5, 4 at level 6-8, etc.
       const words = wordDatabase.findWordsContainingLetter(letter, count, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
       const solution = wordDatabase.getRandomWord(validWords);
@@ -535,7 +541,8 @@ export function createSimpleChallenge(
 
     case 'uses': {
       const wordLength = getWordLength(level);
-      const requiredCount = Math.min(3, Math.floor(level / 5) + 2); // Start with 2, max 3
+      // Improved scaling: starts at 2, increases more gradually, max 4
+      const requiredCount = Math.min(4, Math.floor(level / 3) + 1); // 2 at level 1-2, 3 at level 3-5, 4 at level 6-8, etc.
       const requiredLetters = letterSet.slice(0, requiredCount);
       const words = wordDatabase.findWordsUsingLetters(requiredLetters, letterSet, usedWords);
       const validWords = words.filter(word => word.length >= wordLength);
