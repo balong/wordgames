@@ -46,27 +46,26 @@ export function createSimpleChallenge(
   let type: ChallengeType;
   
   // Get available challenge types based on level
-  const baseTypes = ['start', 'end', 'vowels'];
-  let availableTypes = baseTypes;
+  let availableTypes = ['start', 'end', 'vowels'] as const;
   
   if (level >= 3) {
-    availableTypes = [...baseTypes, 'middle'];
+    availableTypes = ['start', 'end', 'vowels', 'middle'] as const;
   }
   if (level >= 5) {
-    availableTypes = [...availableTypes, 'contains'];
+    availableTypes = ['start', 'end', 'vowels', 'middle', 'contains'] as const;
   }
   if (level >= 8) {
-    availableTypes = [...availableTypes, 'uses'];
+    availableTypes = ['start', 'end', 'vowels', 'middle', 'contains', 'uses'] as const;
   }
   if (level >= 10) {
-    availableTypes = [...availableTypes, 'unique'];
+    availableTypes = ['start', 'end', 'vowels', 'middle', 'contains', 'uses', 'unique'] as const;
   }
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
   // Avoid recent challenge types to keep the game fresh
   const avoidTypes = new Set<ChallengeType | null>([lastType, ...(recentTypes || [])]);
-  const preferredTypes = availableTypes.filter(t => !avoidTypes.has(t));
+  const preferredTypes = availableTypes.filter(t => !avoidTypes.has(t as ChallengeType));
   
   if (preferredTypes.length > 0) {
     type = rand(preferredTypes) as ChallengeType;
