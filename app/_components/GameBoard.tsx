@@ -130,10 +130,10 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       setCurrentChallenge(challenge);
       setLastType(challenge.type);
       
-      // Update recent types (keep last 3 types to avoid repetition)
+      // Update recent types (keep all types to ensure rotation)
       setRecentTypes(prev => {
         const newRecent = [...prev, challenge.type];
-        return newRecent.slice(-3); // Keep only last 3 types
+        return newRecent.slice(-7); // Keep last 7 types (all challenge types)
       });
       
       setUsedSolutions(used);
@@ -145,7 +145,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
       
       // Generate new upcoming challenges to replace the one we just used
       const updatedUsedChallenges = new Set([...usedChallenges, challengeId]);
-      const updatedRecentTypes = [...recentTypes, challenge.type].slice(-3);
+      const updatedRecentTypes = [...recentTypes, challenge.type].slice(-7);
       generateUpcomingChallenges(letters, currentLevel, challenge.type, updatedUsedChallenges, updatedRecentTypes);
     } catch (error) {
       console.error('Error generating challenge:', error);

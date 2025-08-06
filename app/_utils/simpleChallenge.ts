@@ -43,50 +43,42 @@ export function createSimpleChallenge(
   usedWords?: Set<string>,
   recentTypes?: ChallengeType[]
 ): Challenge {
-  // Get available challenge types based on level - introduce new types earlier for better balance
-  let availableTypes: string[] = ['start', 'end', 'vowels'];
-  
-  if (level >= 2) {
-    availableTypes = ['start', 'end', 'vowels', 'contains'];
-  }
-  if (level >= 3) {
-    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle'];
-  }
-  if (level >= 4) {
-    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle', 'uses'];
-  }
-  if (level >= 5) {
-    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle', 'uses', 'unique'];
-  }
-  
-  console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
-  
-  // Ensure we cycle through all available types before repeating
   let type: ChallengeType;
   
+  // All challenge types available from the beginning
+  const allTypes: ChallengeType[] = ['start', 'end', 'vowels', 'contains', 'middle', 'uses', 'unique'];
+  
+  console.log(`Level ${level}: all challenge types available: ${allTypes.join(', ')}`);
+  
+  // Use rotation system to ensure all types are used before repeating
+  let availableTypes: ChallengeType[];
+  
   if (recentTypes && recentTypes.length > 0) {
-    // Get types that haven't been used recently
-    const unusedTypes = availableTypes.filter(t => !recentTypes.includes(t as ChallengeType));
+    // Find types that haven't been used recently
+    const unusedTypes = allTypes.filter(t => !recentTypes.includes(t));
     
     if (unusedTypes.length > 0) {
-      // Use a type that hasn't been used recently
-      type = rand(unusedTypes) as ChallengeType;
-      console.log(`Selected unused challenge type: ${type} (recent types: ${recentTypes.join(', ')})`);
+      // Use types that haven't been used recently
+      availableTypes = unusedTypes;
     } else {
-      // All types have been used, start fresh cycle
-      type = rand(availableTypes) as ChallengeType;
-      console.log(`Starting new cycle with challenge type: ${type}`);
+      // If all types have been used, start fresh
+      availableTypes = allTypes;
     }
   } else {
-    // No recent types, just avoid the last type
-    const avoidLastType = availableTypes.filter(t => t !== lastType);
-    if (avoidLastType.length === 0) {
-      type = rand(availableTypes) as ChallengeType;
-    } else {
-      type = rand(avoidLastType) as ChallengeType;
-    }
-    console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
+    // No recent types, use all types
+    availableTypes = allTypes;
   }
+  
+  // Never repeat the same challenge type twice in a row
+  const avoidLastType = availableTypes.filter(t => t !== lastType);
+  if (avoidLastType.length === 0) {
+    // If all types are the same as lastType, use all available types
+    type = rand(availableTypes) as ChallengeType;
+  } else {
+    type = rand(avoidLastType) as ChallengeType;
+  }
+  
+  console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
