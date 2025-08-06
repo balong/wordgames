@@ -45,36 +45,29 @@ export function createSimpleChallenge(
 ): Challenge {
   let type: ChallengeType;
   
-  // Get available challenge types based on level
+  // Get available challenge types based on level - introduce new types earlier for better balance
   let availableTypes: string[] = ['start', 'end', 'vowels'];
   
+  if (level >= 2) {
+    availableTypes = ['start', 'end', 'vowels', 'contains'];
+  }
   if (level >= 3) {
-    availableTypes = ['start', 'end', 'vowels', 'middle'];
+    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle'];
+  }
+  if (level >= 4) {
+    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle', 'uses'];
   }
   if (level >= 5) {
-    availableTypes = ['start', 'end', 'vowels', 'middle', 'contains'];
-  }
-  if (level >= 8) {
-    availableTypes = ['start', 'end', 'vowels', 'middle', 'contains', 'uses'];
-  }
-  if (level >= 10) {
-    availableTypes = ['start', 'end', 'vowels', 'middle', 'contains', 'uses', 'unique'];
+    availableTypes = ['start', 'end', 'vowels', 'contains', 'middle', 'uses', 'unique'];
   }
   
   console.log(`Level ${level}: available challenge types: ${availableTypes.join(', ')}`);
   
-  // Avoid recent challenge types to keep the game fresh
-  const avoidTypes = new Set<ChallengeType | null>([lastType, ...(recentTypes || [])]);
-  const preferredTypes = availableTypes.filter(t => !avoidTypes.has(t as ChallengeType)) as ChallengeType[];
+  // Simple random selection with slight preference for avoiding the last type
+  const avoidLastType = availableTypes.filter(t => t !== lastType);
+  type = rand(avoidLastType.length > 0 ? avoidLastType : availableTypes) as ChallengeType;
   
-  if (preferredTypes.length > 0) {
-    type = rand(preferredTypes) as ChallengeType;
-  } else {
-    // If all types have been used recently, just avoid the last type
-    type = rand(availableTypes.filter(t => t !== lastType)) as ChallengeType;
-  }
-  
-  console.log(`Selected challenge type: ${type} (avoided: ${Array.from(avoidTypes).join(', ')})`);
+  console.log(`Selected challenge type: ${type} (avoided: ${lastType})`);
   
   // Avoid duplicate challenges if usedChallenges is provided
   if (usedChallenges) {
