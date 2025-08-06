@@ -305,7 +305,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   if (isLoading || !currentChallenge) {
     return (
       <div className="flex flex-col items-center">
-        <h1>Letter Vibes</h1>
+        <h1>Word Games</h1>
         <div className="text-xl mt-8">Loading...</div>
         {message && <div className="text-lg mt-4">{message}</div>}
       </div>
@@ -314,7 +314,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <h1>Letter Vibes</h1>
+      <h1>Word Games</h1>
       <div className="text-sm text-gray-600 mb-2">Level {level}</div>
       
       <div 
