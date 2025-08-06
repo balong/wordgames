@@ -7,7 +7,7 @@ interface DatamuseResult {
   tags?: string[];
 }
 
-async function fetchJson(url: string): Promise<any[]> {
+async function fetchJson(url: string): Promise<DatamuseResult[]> {
   try {
     const response = await fetch(url);
     return await response.json();

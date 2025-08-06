@@ -1,5 +1,5 @@
 import { ALPHABET, VOWELS, EXCLUDE, TILES_TOTAL } from './constants';
-import type { Challenge, ChallengeType } from '../_types/game';
+import type { Challenge } from '../_types/game';
 
 export function rand<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -38,7 +38,7 @@ export function getMiddleLetter(word: string): string {
 }
 
 export function describeChallenge(challenge: Challenge): string {
-  const { type, letter, count, base, target, letters, requiredLength } = challenge;
+  const { type, letter, count, letters, requiredLength } = challenge;
   
   switch (type) {
     case 'start':

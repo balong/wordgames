@@ -22,12 +22,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&family=Fredoka+One&display=swap" 
-          rel="stylesheet" 
-        />
-      </head>
       <body className={`${baloo2.variable}`}>
         {children}
       </body>

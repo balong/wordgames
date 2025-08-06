@@ -7,8 +7,6 @@ import Controls from './Controls';
 import Message from './Message';
 import Confetti from './Confetti';
 import { createLetterSet } from '../_utils/gameLogic';
-import { generateChallenge } from '../_actions/generateChallenge';
-import { validateWord } from '../_actions/validateWord';
 import { describeChallenge } from '../_utils/gameLogic';
 import { createSimpleChallenge } from '../_utils/simpleChallenge';
 import { isWord } from '../_actions/wordQuery';
@@ -156,7 +154,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     }
     
     // Challenge-specific validation
-    const { type, letter, count, base, target, solution } = currentChallenge;
+    const { type, letter, count, solution } = currentChallenge;
     let isValid = false;
     
     switch (type) {
@@ -302,7 +300,7 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
   useEffect(() => {
     console.log('GameBoard mounted, starting game...');
     startGame();
-  }, []);
+  }, [startGame]);
 
   if (isLoading || !currentChallenge) {
     return (
