@@ -169,14 +169,23 @@ export default function GameBoard({ initialLetterSet }: GameBoardProps) {
     // Generate one new challenge to replace the one that was used
     try {
       const nextLevel = currentLevel + 1;
-      const challenge = createSimpleChallenge(
-        letters, 
-        lastType, 
-        nextLevel, 
-        usedChallengesForGeneration, 
-        usedWords, 
-        recentTypesForGeneration
-      );
+      
+      // Ensure we don't generate the same type as the current challenge
+      let challenge: Challenge;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      do {
+        challenge = createSimpleChallenge(
+          letters, 
+          lastType, 
+          nextLevel, 
+          usedChallengesForGeneration, 
+          usedWords, 
+          recentTypesForGeneration
+        );
+        attempts++;
+      } while (challenge.type === lastType && attempts < maxAttempts);
       
       // Add the new challenge to the existing upcoming challenges
       setUpcomingChallenges(prev => [...prev, challenge]);
