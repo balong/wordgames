@@ -115,6 +115,8 @@ button {
   background: var(--accent);
   color: var(--bg);
   transition: opacity 0.2s, transform 0.15s;
+  height: 2.5rem;
+  min-height: 2.5rem;
 }
 
 button:hover {

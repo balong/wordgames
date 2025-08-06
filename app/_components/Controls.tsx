@@ -32,7 +32,7 @@ export default function Controls({
         disabled={!gameActive}
         style={{ opacity: !gameActive ? 0.5 : undefined, cursor: !gameActive ? 'not-allowed' : undefined }}
       >
-        Reveal Answer
+        Show Answer
       </button>
       <button onClick={onNewGame}>
         New Game
